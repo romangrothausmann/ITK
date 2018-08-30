@@ -549,6 +549,9 @@ ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType, TTra
 	}
     inputRequestedRegion.SetUpperIndex( inputIndex );
     
+    // Make sure this region remains contained in the LargestPossibleRegion
+    inputRequestedRegion.Crop(inputPtr->GetLargestPossibleRegion());
+
     inputPtr->SetRequestedRegion( inputRequestedRegion );
     return;
     }
