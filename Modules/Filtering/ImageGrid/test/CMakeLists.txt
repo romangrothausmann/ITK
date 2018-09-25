@@ -46,6 +46,7 @@ itkMirrorPadImageTest.cxx
 itkMirrorPadImageFilterTest.cxx
 itkResampleImageTest.cxx
 itkResampleImageTest2.cxx
+itkResampleImageTest2s.cxx
 itkResampleImageTest3.cxx
 itkResampleImageTest4.cxx
 itkResampleImageTest5.cxx
@@ -248,7 +249,7 @@ itk_add_test(NAME itkResampleImageTest2
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2b.png
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2c.png
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2d.png)
-itk_add_test(NAME itkResampleImageTest2
+itk_add_test(NAME itkResampleImageTest2s
       COMMAND ITKImageGridTestDriver
     --compare DATA{${ITK_DATA_ROOT}/Baseline/BasicFilters/ResampleImageTest2.png}
               ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2a.png
@@ -258,7 +259,7 @@ itk_add_test(NAME itkResampleImageTest2
               ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2c.png
     --compare DATA{Baseline/ResampleImageTest2NearestExtrapolate.png}
               ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2d.png
-    itkResampleImageTest2 DATA{${ITK_DATA_ROOT}/Input/cthead1.png}
+    itkResampleImageTest2s DATA{${ITK_DATA_ROOT}/Input/cthead1.png}
                           DATA{${ITK_DATA_ROOT}/Input/circle.png}
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2a.png
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2b.png
