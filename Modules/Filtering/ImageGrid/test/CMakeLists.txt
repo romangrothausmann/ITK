@@ -283,6 +283,8 @@ itk_add_test(NAME itkResampleImageTest6
     --compare DATA{Baseline/ResampleImageTest6.png}
               ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest6.png
     itkResampleImageTest6 10 ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest6.png)
+itk_add_test(NAME itkResampleImageTest4
+      COMMAND ITKImageGridTestDriver itkResampleImageTest4)
 itk_add_test(NAME itkResamplePhasedArray3DSpecialCoordinatesImageTest
       COMMAND ITKImageGridTestDriver itkResamplePhasedArray3DSpecialCoordinatesImageTest)
 itk_add_test(NAME itkPushPopTileImageFilterTest
