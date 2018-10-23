@@ -147,6 +147,7 @@ int itkResampleImageTest7(int argc, char * argv [] )
 
   // Run the resampling filter with streaming
   numStreamDiv= 8; // split into numStream pieces for streaming.
+  resample->Modified(); // enforce re-execution even though nothing of filter changed
   try
     {
     streamer->SetNumberOfStreamDivisions(numStreamDiv);
