@@ -20,10 +20,15 @@
 
 #include "itkAffineTransform.h"
 #include "itkResampleImageFilter.h"
-#include "itkTimeProbe.h"
+#include "itkPipelineMonitorImageFilter.h"
+#include "itkStreamingImageFilter.h"
 #include "itkTestingMacros.h"
+#include "itkMath.h"
 
-int itkResampleImageTest4(int argc, char * argv [] )
+/* itkResampleImageFilter output compared to streamed output
+ */
+
+int itkResampleImageTest7(int argc, char * argv [] )
 {
 
   constexpr unsigned int NDimensions = 2;
@@ -42,13 +47,6 @@ int itkResampleImageTest4(int argc, char * argv [] )
 
   using InterpolatorType = itk::LinearInterpolateImageFunction<ImageType,CoordRepType>;
 
-
-  float scaling = 10.0;
-  if (argc > 1)
-    {
-    scaling = std::stod( argv[1] );
-    }
-
   // Create and configure an image
   ImagePointerType image = ImageType::New();
   ImageIndexType  index = {{0,  0}};
@@ -59,13 +57,6 @@ int itkResampleImageTest4(int argc, char * argv [] )
   image->SetLargestPossibleRegion( region );
   image->SetBufferedRegion( region );
   image->Allocate();
-
-  auto newDims = static_cast<unsigned int>( 64*scaling );
-  ImageSizeType osize = {{newDims, newDims}};
-
-  ImageType::SpacingType spacing;
-  spacing[0] = size[0] / static_cast<double>(osize[0]);
-  spacing[1] = size[1] / static_cast<double>(osize[1]);
 
   // Fill image with a ramp
   itk::ImageRegionIteratorWithIndex<ImageType> iter(image, region);
@@ -96,8 +87,8 @@ int itkResampleImageTest4(int argc, char * argv [] )
   resample->SetInput(image);
   TEST_SET_GET_VALUE( image, resample->GetInput() );
 
-  resample->SetSize(osize);
-  TEST_SET_GET_VALUE( osize, resample->GetSize() );
+  resample->SetSize(size);
+  TEST_SET_GET_VALUE( size, resample->GetSize() );
 
   resample->SetTransform(aff);
   TEST_SET_GET_VALUE( aff, resample->GetTransform() );
@@ -114,16 +105,89 @@ int itkResampleImageTest4(int argc, char * argv [] )
   resample->SetOutputOrigin( origin );
   TEST_SET_GET_VALUE( origin, resample->GetOutputOrigin() );
 
+  ImageType::SpacingType spacing;
+  spacing.Fill( 1.0 );
   resample->SetOutputSpacing( spacing );
   TEST_SET_GET_VALUE( spacing, resample->GetOutputSpacing() );
 
-  // Run the resampling filter
-  itk::TimeProbe clock;
-  clock.Start();
-  resample->Update();
-  clock.Stop();
+  using MonitorFilter = itk::PipelineMonitorImageFilter<ImageType>;
+  MonitorFilter::Pointer monitor = MonitorFilter::New();
 
-  std::cout << "Resampling from " << size << " to " << osize << " took " << clock.GetMean() << " s" << std::endl;
+  using StreamerType = itk::StreamingImageFilter<ImageType,ImageType>;
+  StreamerType::Pointer streamer = StreamerType::New();
+
+  std::cout << "Test with normal AffineTransform." << std::endl;
+  monitor->SetInput( resample->GetOutput() );
+  streamer->SetInput( monitor->GetOutput() );
+
+  unsigned char numStreamDiv;
+
+  // Run the resampling filter without streaming, i.e. 1 StreamDivisions
+  numStreamDiv= 1; // do not split, i.e. do not stream
+  try
+    {
+    streamer->SetNumberOfStreamDivisions(numStreamDiv);
+    streamer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if (!monitor->VerifyAllInputCanStream(numStreamDiv))
+    {
+    std::cout << "Avoiding streaming failed to execute as expected!" << std::endl;
+    std::cout << monitor;
+    return EXIT_FAILURE;
+    }
+
+  ImagePointerType outputNoSDI= streamer->GetOutput(); // save output for later comparison
+  outputNoSDI->DisconnectPipeline(); // disconnect to create new output
+
+  // Run the resampling filter with streaming
+  numStreamDiv= 8; // split into numStream pieces for streaming.
+  try
+    {
+    streamer->SetNumberOfStreamDivisions(numStreamDiv);
+    streamer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if (!monitor->VerifyAllInputCanStream(numStreamDiv))
+    {
+    std::cout << "Streaming failed to execute as expected!" << std::endl;
+    std::cout << monitor;
+    return EXIT_FAILURE;
+    }
+
+  ImagePointerType outputSDI= streamer->GetOutput();
+  outputSDI->DisconnectPipeline();
+
+  itk::ImageRegionIterator<ImageType>
+      itNoSDI(outputNoSDI, outputNoSDI->GetLargestPossibleRegion()),
+      itSDI(outputSDI, outputSDI->GetLargestPossibleRegion());
+  for(itNoSDI.GoToBegin(), itSDI.GoToBegin();
+      !itNoSDI.IsAtEnd() && !itSDI.IsAtEnd();
+      ++itNoSDI, ++itSDI)
+    {
+    if(itk::Math::NotAlmostEquals( itNoSDI.Value(), itSDI.Value() ))
+      {
+      std::cout << "Pixels differ "
+                << itNoSDI.Value() << " "
+                << itSDI.Value() << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  if(itNoSDI.IsAtEnd() != itSDI.IsAtEnd())
+    {
+    std::cout << "Iterators don't agree on end of image" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
