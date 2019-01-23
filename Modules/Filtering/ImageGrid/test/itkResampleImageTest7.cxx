@@ -124,16 +124,8 @@ int itkResampleImageTest7(int argc, char * argv [] )
 
   // Run the resampling filter without streaming, i.e. 1 StreamDivisions
   numStreamDiv= 1; // do not split, i.e. do not stream
-  try
-    {
-    streamer->SetNumberOfStreamDivisions(numStreamDiv);
-    streamer->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  streamer->SetNumberOfStreamDivisions(numStreamDiv);
+  TRY_EXPECT_NO_EXCEPTION( streamer->Update() );
 
   if (!monitor->VerifyAllInputCanStream(numStreamDiv))
     {
@@ -148,16 +140,8 @@ int itkResampleImageTest7(int argc, char * argv [] )
   // Run the resampling filter with streaming
   numStreamDiv= 8; // split into numStream pieces for streaming.
   resample->Modified(); // enforce re-execution even though nothing of filter changed
-  try
-    {
-    streamer->SetNumberOfStreamDivisions(numStreamDiv);
-    streamer->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  streamer->SetNumberOfStreamDivisions(numStreamDiv);
+  TRY_EXPECT_NO_EXCEPTION( streamer->Update() );
 
   if (!monitor->VerifyAllInputCanStream(numStreamDiv))
     {
@@ -181,12 +165,18 @@ int itkResampleImageTest7(int argc, char * argv [] )
       std::cout << "Pixels differ "
                 << itNoSDI.Value() << " "
                 << itSDI.Value() << std::endl;
+      std::cerr << "Test failed!" << std::endl;
+      std::cerr << "Error in pixel value at index [" << itNoSDI.GetIndex() << "]" << std::endl;
+      std::cerr << "Expected difference " << itNoSDI.Get() - itSDI.Get() << std::endl;
+      std::cerr << " differs from 0 ";
       return EXIT_FAILURE;
       }
     }
   if(itNoSDI.IsAtEnd() != itSDI.IsAtEnd())
     {
-    std::cout << "Iterators don't agree on end of image" << std::endl;
+    std::cerr << "Test failed!" << std::endl;
+    std::cerr << "Iterators don't agree on end of image" << std::endl;
+    std::cerr << "at index [" << itNoSDI.GetIndex() << "]" << std::endl;
     return EXIT_FAILURE;
     }
 

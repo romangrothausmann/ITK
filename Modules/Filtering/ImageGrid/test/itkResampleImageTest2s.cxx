@@ -157,23 +157,15 @@ int itkResampleImageTest2s(int argc, char * argv [] )
   // Run the resampling filter with the normal, linear, affine transform.
   // This will use ResampleImageFilter::LinearThreadedGenerateData().
   std::cout << "Test with normal AffineTransform." << std::endl;
-  try
-    {
-    writer1->SetNumberOfStreamDivisions(8); //split into 8 pieces for streaming.
-    writer1->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  writer1->SetNumberOfStreamDivisions(8); //split into 8 pieces for streaming.
+  TRY_EXPECT_NO_EXCEPTION( writer1->Update() );
 
   // this verifies that the pipeline was executed as expected along
   // with correct region propagation and output information
   if (!monitor->VerifyAllInputCanStream(8))
     {
-    std::cout << "Streaming failed to execute as expected!" << std::endl;
-    std::cout << monitor;
+    std::cerr << "Streaming failed to execute as expected!" << std::endl;
+    std::cerr << monitor;
     return EXIT_FAILURE;
     }
 
@@ -189,16 +181,8 @@ int itkResampleImageTest2s(int argc, char * argv [] )
   nonlinearAffineTransform->Scale(2.0);
   resample->SetTransform( nonlinearAffineTransform );
   writer2->SetInput( monitor->GetOutput() );
-  try
-    {
-    writer2->SetNumberOfStreamDivisions(8); //demand splitting into 8 pieces for streaming, but faked non-linearity will disable streaming
-    writer2->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  writer2->SetNumberOfStreamDivisions(8); //demand splitting into 8 pieces for streaming, but faked non-linearity will disable streaming
+  TRY_EXPECT_NO_EXCEPTION( writer2->Update() );
 
   // check that streaming is not possible for non-linear case
   if (!monitor->VerifyAllInputCanStream(1))
@@ -214,62 +198,18 @@ int itkResampleImageTest2s(int argc, char * argv [] )
   resample->SetExtrapolator( extrapolator );
   writer3->SetInput( resample->GetOutput() );
   std::cout << "Test with nearest neighbor extrapolator, affine transform." << std::endl;
-  try
-    {
-    writer3->SetNumberOfStreamDivisions(8); //split into 8 pieces for streaming.
-    writer3->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  writer3->SetNumberOfStreamDivisions(8); //split into 8 pieces for streaming.
+  TRY_EXPECT_NO_EXCEPTION( writer3->Update() );
 
   // Instead of using the default pixel when sampling outside the input image,
   // we use a nearest neighbor extrapolator.
   resample->SetTransform( nonlinearAffineTransform );
   writer4->SetInput( resample->GetOutput() );
   std::cout << "Test with nearest neighbor extrapolator, nonlinear transform." << std::endl;
-  try
-    {
-    writer4->SetNumberOfStreamDivisions(8); //demand splitting into 8 pieces for streaming, but faked non-linearity will disable streaming
-    writer4->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  writer4->SetNumberOfStreamDivisions(8); //demand splitting into 8 pieces for streaming, but faked non-linearity will disable streaming
+  TRY_EXPECT_NO_EXCEPTION( writer4->Update() );
 
-  // Check UseReferenceImage methods
-  resample->UseReferenceImageOff();
-  if( resample->GetUseReferenceImage() )
-    {
-    std::cerr << "GetUseReferenceImage() or UseReferenceImageOff() failed ! ";
-    std::cerr << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  // Check UseReferenceImage methods
-  resample->UseReferenceImageOn();
-  if( !resample->GetUseReferenceImage() )
-    {
-    std::cerr << "GetUseReferenceImage() or UseReferenceImageOn() failed ! ";
-    std::cerr << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  // Check UseReferenceImage methods
-  resample->SetUseReferenceImage( false );
-  if( resample->GetUseReferenceImage() )
-    {
-    std::cerr << "GetUseReferenceImage() or SetUseReferenceImage() failed ! ";
-    std::cerr << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
- std::cout << "Test passed." << std::endl;
- return EXIT_SUCCESS;
+  std::cout << "Test passed." << std::endl;
+  return EXIT_SUCCESS;
 
 }
