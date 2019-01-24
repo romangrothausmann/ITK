@@ -266,6 +266,7 @@ itk_add_test(NAME itkResampleImageTest2s
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2b.mha
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2c.mha
                           ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest2d.mha)
+set_tests_properties(itkResampleImageTest2s PROPERTIES WILL_FAIL TRUE) # should fail as long as itkResampleFilter does not support streaming for linear transforms GH PR #82
 itk_add_test(NAME itkResampleImageTest3
       COMMAND ITKImageGridTestDriver
     --compare DATA{Baseline/ResampleImageTest3.png}
@@ -286,6 +287,7 @@ itk_add_test(NAME itkResampleImageTest6
     itkResampleImageTest6 10 ${ITK_TEST_OUTPUT_DIR}/ResampleImageTest6.png)
 itk_add_test(NAME itkResampleImageTest7
       COMMAND ITKImageGridTestDriver itkResampleImageTest7)
+set_tests_properties(itkResampleImageTest7 PROPERTIES WILL_FAIL TRUE) # should fail as long as itkResampleFilter does not support streaming for linear transforms GH PR #82
 itk_add_test(NAME itkResamplePhasedArray3DSpecialCoordinatesImageTest
       COMMAND ITKImageGridTestDriver itkResamplePhasedArray3DSpecialCoordinatesImageTest)
 itk_add_test(NAME itkPushPopTileImageFilterTest
