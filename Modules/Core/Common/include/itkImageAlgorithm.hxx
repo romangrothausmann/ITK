@@ -218,14 +218,11 @@ ImageAlgorithm::EnlargeRegionOverBox(const typename InputImageType::RegionType &
 
     using PointType = Point< SpacePrecisionType, OutputImageType::ImageDimension >;
     PointType point;
-    if ( transformPtr == ITK_NULLPTR)
-      {
-      inputImage->TransformContinuousIndexToPhysicalPoint(currentCornerIndex, point);
-      }
-    else
-      {
-      point = transformPtr->TransformPoint(currentCornerIndex);
-      }
+    inputImage->TransformContinuousIndexToPhysicalPoint(currentCornerIndex, point);
+    if( transformPtr != nullptr)
+        {
+        point = transformPtr->TransformPoint(currentCornerIndex);
+        }
     outputImage->TransformPhysicalPointToContinuousIndex(point, corners[count]);
     }
 

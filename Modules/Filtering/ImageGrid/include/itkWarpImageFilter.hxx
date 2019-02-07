@@ -415,7 +415,7 @@ WarpImageFilter< TInputImage, TOutputImage, TDisplacementField >
       using TransformType = itk::Transform< SpacePrecisionType, OutputImageType::ImageDimension, OutputImageType::ImageDimension >;
 
       DisplacementRegionType fieldRequestedRegion = ImageAlgorithm::EnlargeRegionOverBox(outputPtr->GetRequestedRegion(),
-                                                                                         static_cast< TransformType *>(ITK_NULLPTR),
+                                                                                         static_cast< TransformType *>(nullptr),
                                                                                          outputPtr,
                                                                                          fieldPtr);
       fieldPtr->SetRequestedRegion( fieldRequestedRegion );

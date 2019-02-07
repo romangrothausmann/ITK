@@ -126,7 +126,7 @@ int itkImageTest(int, char* [] )
   typedef itk::Transform< double, Image::ImageDimension, Image::ImageDimension > TransformType;
 
   Image::RegionType boxRegion = itk::ImageAlgorithm::EnlargeRegionOverBox(image->GetLargestPossibleRegion(),
-                                                                          static_cast< TransformType *>(ITK_NULLPTR),
+                                                                          static_cast< TransformType *>(nullptr),
                                                                           image.GetPointer(),
                                                                           imageRef.GetPointer());
   Image::IndexType correctIndex; correctIndex.Fill(0);
