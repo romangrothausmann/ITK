@@ -124,9 +124,17 @@ int itkResampleImageTest7( int , char *[] )
   outputNoSDI->DisconnectPipeline(); // disconnect to create new output
 
   // Run the resampling filter with streaming
+  image->Modified();
   numStreamDiv= 8; // split into numStream pieces for streaming.
   streamer->SetNumberOfStreamDivisions(numStreamDiv);
   TRY_EXPECT_NO_EXCEPTION( streamer->UpdateLargestPossibleRegion() );
+
+  // Verify that we only requested a smaller chunk when streaming
+  const ImageRegionType finalRequestedRegion( image->GetRequestedRegion() );
+  TEST_SET_GET_VALUE( 0, finalRequestedRegion.GetIndex(0) );
+  TEST_SET_GET_VALUE( 49, finalRequestedRegion.GetIndex(1) );
+  TEST_SET_GET_VALUE( 59, finalRequestedRegion.GetSize(0) );
+  TEST_SET_GET_VALUE( 10, finalRequestedRegion.GetSize(1) );
 
   ImagePointerType outputSDI = streamer->GetOutput();
   outputSDI->DisconnectPipeline();

@@ -507,12 +507,8 @@ void
 ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType, TTransformPrecisionType >
 ::GenerateInputRequestedRegion()
 {
-  // Call the superclass' implementation of this method
-  Superclass::GenerateInputRequestedRegion();
-
   // Get pointers to the input and output
   InputImageType * input  = const_cast< InputImageType * >( this->GetInput() );
-
 
   // Check whether the input or the output is a
   // SpecialCoordinatesImage. If either are, then we cannot use the
@@ -541,11 +537,19 @@ ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType, TTra
     const typename TInputImage::RegionType inputLargestRegion( input->GetLargestPossibleRegion() );
     if( inputLargestRegion.IsInside( inputRequestedRegion.GetIndex() ) || inputLargestRegion.IsInside( inputRequestedRegion.GetUpperIndex() ) )
       {
+      // Input requested region is partially outside the largest possible region.
+      //   or
+      // Input requested region is completely inside the largest possible region.
       input->SetRequestedRegion( inputRequestedRegion );
       }
     else if( inputRequestedRegion.IsInside( inputLargestRegion ) )
       {
+      // Input requested region completely surrounds the largest possible region.
       input->SetRequestedRegion( inputLargestRegion );
+      }
+    else
+      {
+      // Input requested region is completely outside the largest possible region. Do not set the requested region in this case.
       }
     return;
     }
