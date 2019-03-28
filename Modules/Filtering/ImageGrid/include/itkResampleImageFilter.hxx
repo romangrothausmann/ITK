@@ -511,7 +511,7 @@ ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType, TTra
   Superclass::GenerateInputRequestedRegion();
 
   // Get pointers to the input and output
-  InputImageType * inputPtr  = const_cast< InputImageType * >( this->GetInput() );
+  InputImageType * input  = const_cast< InputImageType * >( this->GetInput() );
 
 
   // Check whether the input or the output is a
@@ -523,22 +523,30 @@ ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType, TTra
   const bool isSpecialCoordinatesImage = ( dynamic_cast< const InputSpecialCoordinatesImageType * >( this->GetInput() )
        || dynamic_cast< const OutputSpecialCoordinatesImageType * >( this->GetOutput() ) );
 
-  const OutputImageType *outputPtr = this->GetOutput();
+  const OutputImageType *output = this->GetOutput();
   // Get the input transform
-  const TransformType *transformPtr = this->GetTransform();
+  const TransformType *transform = this->GetTransform();
 
   // Check whether we can use upstream streaming for resampling. Upstream streaming
   // can be used if the transformation is linear. Transform respond
   // to the IsLinear() call.
-  if ( !isSpecialCoordinatesImage && transformPtr->GetTransformCategory() == TransformType::Linear )
+  if ( !isSpecialCoordinatesImage && transform->GetTransformCategory() == TransformType::Linear )
     {
     typename TInputImage::RegionType inputRequestedRegion;
-    inputRequestedRegion = ImageAlgorithm::EnlargeRegionOverBox(outputPtr->GetRequestedRegion(),
-        transformPtr,
-        outputPtr,
-        inputPtr);
+    inputRequestedRegion = ImageAlgorithm::EnlargeRegionOverBox(output->GetRequestedRegion(),
+        output,
+        input,
+        transform);
 
-    inputPtr->SetRequestedRegion( inputRequestedRegion );
+    const typename TInputImage::RegionType inputLargestRegion( input->GetLargestPossibleRegion() );
+    if( inputLargestRegion.IsInside( inputRequestedRegion.GetIndex() ) || inputLargestRegion.IsInside( inputRequestedRegion.GetUpperIndex() ) )
+      {
+      input->SetRequestedRegion( inputRequestedRegion );
+      }
+    else if( inputRequestedRegion.IsInside( inputLargestRegion ) )
+      {
+      input->SetRequestedRegion( inputLargestRegion );
+      }
     return;
     }
 
@@ -546,7 +554,7 @@ ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType, TTra
   // when we cannot assume anything about the transform being used.
   // So we do the easy thing and request the entire input image.
   //
-  inputPtr->SetRequestedRegionToLargestPossibleRegion();
+  input->SetRequestedRegionToLargestPossibleRegion();
 }
 
 template< typename TInputImage,
